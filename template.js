@@ -64,7 +64,7 @@ const WEDDING_CONFIG = (typeof window !== "undefined" && window.__INVITE__ && wi
     setOrHide("closingHashtag", C.hashtag);
     setOrHide("contactLabel", C.contactLabel, ".sec-title");
 
-    document.title = "دعوة عيد ميلاد " + celebrant;
+    document.title = "دعوة " + (C.eventTitle || ("عيد ميلاد " + celebrant));
 
     /* العمر — أرقام هندية كبيرة في الواجهة + شارة صغيرة على الغلاف؛
        يختفيان معاً بأناقة إن غاب العمر (مع تطبيع الأرقام الهندية أولاً) */
@@ -99,7 +99,16 @@ const WEDDING_CONFIG = (typeof window !== "undefined" && window.__INVITE__ && wi
     var contactBox = $("contactBox");
     var contactLink = $("contactLink");
     var digits = C.contactPhone ? String(C.contactPhone).replace(/[^\d+]/g, "") : "";
-    if (digits && contactLink) {
+    if (C.whatsappUrl && contactLink) {
+      var waMessage = C.whatsappMessage || ("مرحبًا، أود الاستفسار عن " + (C.eventTitle || "الدعوة") + ".");
+      contactLink.href = C.whatsappUrl + "?text=" + encodeURIComponent(waMessage);
+      contactLink.target = "_blank";
+      contactLink.rel = "noopener noreferrer";
+      contactLink.setAttribute("aria-label", "تواصل عبر واتساب");
+      setText("contactPhoneText", "واتساب");
+      setOrHide("contactName", C.contactName || C.contactLabel);
+      if (contactBox) contactBox.style.display = "";
+    } else if (digits && contactLink) {
       contactLink.href = "tel:" + digits;
       setText("contactPhoneText", C.contactPhone);
       setOrHide("contactName", C.contactName || C.contactLabel);
