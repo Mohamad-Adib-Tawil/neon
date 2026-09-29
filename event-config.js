@@ -6,7 +6,7 @@ window.__INVITE__ = {
     timeZone: "Asia/Baghdad",
     musicVideoId: "glRTRNZ7oMg",
     celebrant: "رهف",
-    celebrantEnglish: "Rahaf",
+    celebrantEnglish: "",
     age: 25,
     host: "صديقاتها وعائلتها",
     date: "2026-11-06T20:00:00",
