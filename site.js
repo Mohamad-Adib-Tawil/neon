@@ -74,6 +74,8 @@
     }
     var contact = document.getElementById("contactLink");
     var contactText = document.getElementById("contactPhoneText");
+    var contactName = document.getElementById("contactName");
+    if (contactName) contactName.textContent = config.contactName || "";
     if (contact && whatsappUrl) {
       contact.href = waLink(config.whatsappMessage || ("مرحبًا، أود الاستفسار عن " + (config.eventTitle || "الدعوة") + "."));
       contact.target = "_blank";
