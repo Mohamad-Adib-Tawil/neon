@@ -215,8 +215,7 @@
       <div class="cal-foot">
         <p class="cal-cap">📲 أضِف الموعد إلى تقويم هاتفك بضغطة</p>
         <div class="cal-btns">
-          <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&amp;text=%D8%AF%D8%B9%D9%88%D8%A9%20%D8%B9%D9%8A%D8%AF%20%D9%85%D9%8A%D9%84%D8%A7%D8%AF%20%D8%B1%D9%87%D9%81&amp;dates=20261106T200000/20261106T000000&amp;ctz=Asia/Baghdad&amp;location=%D9%82%D8%A7%D8%B9%D8%A9%20%D8%B3%D9%83%D8%A7%D9%8A%20%D9%84%D8%A7%D9%88%D9%86%D8%AC%20%E2%80%94%20%D8%A8%D8%BA%D8%AF%D8%A7%D8%AF%20%E2%80%94%20%D8%A7%D9%84%D9%85%D9%86%D8%B5%D9%88%D8%B1&amp;details=%D8%B1%D8%A7%D8%A8%D8%B7%20%D8%A7%D9%84%D8%AF%D8%B9%D9%88%D8%A9%3A%20%D8%AF%D8%B9%D9%88%D8%A9%20%D8%B9%D9%8A%D8%AF%20%D9%85%D9%8A%D9%84%D8%A7%D8%AF%20%D8%B1%D9%87%D9%81" target="_blank" rel="noopener">تقويم جوجل</a>
-          <a href="event.ics" download="دعوة-عيد-ميلاد-رهف.ics">تقويم آيفون</a>
+          <a id="calendarDownload" href="#" download="invitation.ics">تقويم الهاتف</a>
         </div>
       </div>
   </div>
@@ -350,7 +349,6 @@
     
   </div>
 
-  <script src="site.js" defer></script>
 </section>
 
 
@@ -359,6 +357,7 @@
   
   
   <script src="template.js" defer=""></script>
+  <script src="site.js" defer></script>
 <style>.da3wa-relline{text-align:center;margin:clamp(14px,4vw,26px) auto clamp(4px,1.6vw,10px);max-width:34ch}</style>
 
 <script>document.addEventListener("DOMContentLoaded",function(){
@@ -508,9 +507,9 @@
        ضغط زرّها. التسليح المبكر يجعل أوّل لمسة هي التي تُشغّلها. */
     rearmOnGesture(); };
   window.onYouTubeIframeAPIReady=function(){
-    player=new YT.Player('da3wa-yt',{videoId:"glRTRNZ7oMg",
+    player=new YT.Player('da3wa-yt',{videoId:(window.__INVITE__&&window.__INVITE__.config&&window.__INVITE__.config.musicVideoId)||"",
       // يُجهَّز صامتاً؛ القالب يستطيع إبقاءه متوقفاً حتى تنتهي مقدمة الفيديو
-      playerVars:{autoplay:0,mute:1,controls:0,disablekb:1,fs:0,loop:1,playlist:"glRTRNZ7oMg",playsinline:1,modestbranding:1,rel:0,start:0},
+      playerVars:{autoplay:0,mute:1,controls:0,disablekb:1,fs:0,loop:1,playlist:(window.__INVITE__&&window.__INVITE__.config&&window.__INVITE__.config.musicVideoId)||"",playsinline:1,modestbranding:1,rel:0,start:0},
       events:{onReady:function(){ ready=true; window.__da3waMusicReady=true;
         try{ player.mute(); if(suspended||isManual())player.pauseVideo(); else player.playVideo(); }catch(e){}
         if(isManual()){ if(primeRequested&&!goRequested)primeSilently(); if(goRequested){seekBeforeLoud=true;pump();} }

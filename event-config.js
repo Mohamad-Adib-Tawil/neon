@@ -2,6 +2,9 @@
 window.__INVITE__ = {
   config: {
     occasion: "birthday",
+    eventTitle: "عيد ميلاد رهف",
+    timeZone: "Asia/Baghdad",
+    musicVideoId: "glRTRNZ7oMg",
     celebrant: "رهف",
     celebrantEnglish: "Rahaf",
     age: 25,
@@ -29,7 +32,14 @@ window.__INVITE__ = {
     contactName: "للتواصل عبر واتساب",
     contactPhone: "",
     whatsappUrl: "https://wa.me/963992688759",
-    whatsappMessage: "مرحبًا، أود الاستفسار عن دعوة عيد ميلاد رهف.",
+    whatsappMessage: "",
+    wishes: [
+      { name: "دانية", message: "كل عام وأنت بألف خير 🎂 وعقبال ١٠٠ سنة" },
+      { name: "يوسف", message: "عيد ميلاد سعيد! الله يخليك لأهلك وأحبابك" },
+      { name: "ريم", message: "سنة جديدة كلها نجاح وفرح إن شاء الله 🎈" },
+      { name: "شهد", message: "كل عام وأنت الأحلى، يومك مميز مثلك 🥳" },
+      { name: "علي", message: "مبروك، وأحلى الأمنيات بالصحة والسعادة" }
+    ],
     images: { hero: "", background: "" },
     assets: { scene: "assets/scene.jpg", share: "assets/share.jpg" }
   }
