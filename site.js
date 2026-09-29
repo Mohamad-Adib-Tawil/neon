@@ -32,8 +32,8 @@
       var ymd = (dateParts[0] || "").split("-");
       var hm = (dateParts[1] || "").split(":");
       var utcDate = new Date(Date.UTC(Number(ymd[0]), Number(ymd[1]) - 1, Number(ymd[2])));
-      var month = new Intl.DateTimeFormat("ar", { month: "long", timeZone: "UTC" }).format(utcDate);
-      var weekday = new Intl.DateTimeFormat("ar", { weekday: "long", timeZone: "UTC" }).format(utcDate);
+      var month = new Intl.DateTimeFormat("ar-IQ", { month: "long", timeZone: "UTC" }).format(utcDate);
+      var weekday = new Intl.DateTimeFormat("ar-IQ", { weekday: "long", timeZone: "UTC" }).format(utcDate);
       var arabicDigits = function (value) { return String(value).replace(/[0-9]/g, function (digit) { return "٠١٢٣٤٥٦٧٨٩"[Number(digit)]; }); };
       var monthEl = document.querySelector("#da3wa-cal .cal-top");
       var weekdayEl = document.querySelector("#da3wa-cal .cal-wd");
@@ -41,7 +41,7 @@
       var timeEl = document.querySelector("#da3wa-cal .cal-time");
       if (monthEl) monthEl.textContent = month + " " + arabicDigits(ymd[0]);
       if (weekdayEl) weekdayEl.textContent = weekday;
-      if (dayEl) dayEl.textContent = arabicDigits(ymd[2]);
+      if (dayEl) dayEl.textContent = arabicDigits(Number(ymd[2]));
       if (timeEl) timeEl.textContent = config.timeText || "";
       var localStart = (ymd.join("") + "T" + (hm[0] || "00") + (hm[1] || "00") + (hm[2] || "00"));
       var escIcs = function (value) { return String(value || "").replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/,/g, "\\,").replace(/;/g, "\\;"); };
