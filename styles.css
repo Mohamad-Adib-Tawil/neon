@@ -1,0 +1,970 @@
+/* ============================================================
+   ليلة النيون — Neon Night Birthday (neon)
+   مشهد فوتوغرافي: حلقة نيون وردية على جدار بنفسجي داكن،
+   كيكة بشمعات على منضدة وبالونات معدنية — اسم صاحبة العيد
+   يتوهّج داخل الحلقة بأسلوب أنبوب نيون حقيقي.
+   ============================================================ */
+
+:root {
+  /* الليل البنفسجي — مطابق لدرجات الصورة */
+  --void:       #150920;   /* html bg + قاع الذوبان */
+  --violet:     #241035;
+  --violet-hi:  #38184f;
+  --wall-top:   #2c1038;   /* أعلى المشهد = theme-color */
+
+  /* النيون الوردي */
+  --neon:      #ff3d8f;
+  --neon-soft: #ff7cb8;
+  --neon-hi:   #ffd3e6;
+  --neon-ice:  #fff4fa;
+
+  /* شرارات الشموع */
+  --spark-gold: #ffd98a;
+
+  --text:  #f6e8fa;
+  --muted: #cfaede;
+
+  --radius: 20px;
+  --maxw: 620px;
+  --ease-lux: cubic-bezier(.22,.61,.36,1);
+}
+
+* { box-sizing: border-box; }
+
+html {
+  /* لا شرائط بيضاء في مناطق الأمان أبداً */
+  background: var(--void);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--void);
+  color: var(--text);
+  font-family: "Tajawal", system-ui, sans-serif;
+  line-height: 1.9;
+  overflow-x: hidden;
+  letter-spacing: normal;   /* العربية دائماً بدون تباعد أحرف */
+}
+body.locked { overflow: hidden; height: 100dvh; }
+
+img { max-width: 100%; display: block; }
+button { font-family: inherit; }
+
+/* ============================================================
+   COVER — النيون خافت ثم يشتعل
+   ============================================================ */
+.cover {
+  position: fixed; inset: 0; z-index: 60;
+  min-height: 100lvh;
+  overflow: hidden;
+  /* fallback: الصورة خلفية للحاوية — المشهد ظاهر حتى لو تأخر <img> */
+  background: var(--void) url("assets/scene.jpg") center / cover no-repeat;
+  transition: opacity 1s ease .1s, visibility 0s linear 1.2s;
+}
+.cover.is-done { opacity: 0; visibility: hidden; pointer-events: none; }
+
+/* خلفية العميلة الاختيارية بقناع متلاشي الحواف */
+.cover-bg {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  -webkit-mask-image: radial-gradient(ellipse 82% 76% at 50% 42%, #000 44%, transparent 100%);
+  mask-image: radial-gradient(ellipse 82% 76% at 50% 42%, #000 44%, transparent 100%);
+}
+.cover-bg .bg-photo {
+  width: 100%; height: 100%; object-fit: cover;
+  opacity: 0; transition: opacity .9s ease;
+}
+.cover-bg .bg-photo.is-shown { opacity: .32; }
+
+/* المشهد + الاسم داخل حاوية واحدة كي يتحركا معاً في Ken-Burns */
+.scene-photo {
+  position: absolute; inset: 0; z-index: 2;
+  animation: kenburns 18s ease-in-out infinite alternate;
+}
+@keyframes kenburns {
+  from { transform: scale(1); }
+  to   { transform: scale(1.055) translateY(-.8%); }
+}
+.scene-photo .ph {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+
+/* غلالة الإعتام — النيون «مطفأ» قبل اللمسة */
+.dimmer {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 90% 70% at 50% 38%, rgba(16,5,24,.5), rgba(12,4,20,.68) 70%),
+    rgba(12,4,20,.28);
+  opacity: .95;
+  transition: opacity .6s ease;
+}
+.cover.is-arming .dimmer { animation: dimFlicker 1.45s linear forwards; }
+.cover.is-revealed .dimmer { opacity: .06; }
+@keyframes dimFlicker {
+  0%   { opacity: .95; }
+  5%   { opacity: .55; }
+  8%   { opacity: .9; }
+  12%  { opacity: .42; }
+  16%  { opacity: .92; }
+  22%  { opacity: .3; }
+  27%  { opacity: .75; }
+  33%  { opacity: .2; }
+  40%  { opacity: .55; }
+  50%  { opacity: .12; }
+  62%  { opacity: .3; }
+  100% { opacity: .06; }
+}
+
+/* توهج إضافي يتفتّح فوق حلقة النيون المصوّرة (يُموضَع بالـ JS) */
+.ring-bloom {
+  position: absolute; z-index: 3;
+  left: var(--rx, 50%); top: var(--ry, 37%);
+  width: calc(var(--rd, 240px) * 1.9);
+  height: calc(var(--rd, 240px) * 1.9);
+  transform: translate(-50%, -50%) scale(.9);
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    rgba(255,120,180,0) 26%,
+    rgba(255,92,168,.5) 45%,
+    rgba(255,61,143,.28) 58%,
+    transparent 74%);
+  mix-blend-mode: screen;
+  opacity: 0;
+  pointer-events: none;
+}
+.cover.is-flash .ring-bloom {
+  opacity: 1; transform: translate(-50%,-50%) scale(1.12);
+  transition: opacity .3s ease-in, transform .5s var(--ease-lux);
+}
+.cover.is-revealed .ring-bloom,
+.ring-bloom.is-on {
+  opacity: .5;
+  transform: translate(-50%,-50%) scale(1);
+  animation: bloomBreathe 3.2s ease-in-out infinite;
+}
+@keyframes bloomBreathe {
+  0%,100% { opacity: .34; }
+  50%     { opacity: .58; }
+}
+
+/* ---------------- اسم النيون داخل الحلقة ---------------- */
+/* الحركة الإمضاء: قلب أبيض + طبقات توهج وردية + ظلال داكنة مزدوجة
+   كي لا يغرق النص في ضوء الحلقة (درس قالب ring) */
+.neon-name {
+  position: absolute; z-index: 4;
+  left: 50%; top: 37%;
+  width: 200px;
+  margin: 0;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  font-family: "Lalezar", "Tajawal", sans-serif;
+  font-weight: 400;
+  line-height: 1.32;
+  letter-spacing: normal;
+  color: var(--neon-ice);
+  text-shadow:
+    0 0 5px #fff,
+    0 0 12px #ff9ec9,
+    0 0 26px var(--neon),
+    0 0 52px var(--neon),
+    0 2px 7px rgba(20,4,18,.85),
+    0 5px 20px rgba(20,4,18,.6);
+  pointer-events: none;
+}
+.neon-name::before { /* هالة داكنة ضبابية خلف الاسم داخل الحلقة */
+  content: "";
+  position: absolute; z-index: -1;
+  inset: -22% -14%;
+  background: radial-gradient(ellipse at center, rgba(22,7,30,.55), rgba(22,7,30,.28) 58%, transparent 78%);
+  filter: blur(12px);
+}
+.neon-name .nn-in { display: block; }
+
+/* الأنبوب البارد قبل الإضاءة — تشبّع وسطوع منخفضان يزولان مع الاشتعال */
+#neonName { filter: saturate(.55) brightness(.85); transition: filter .5s ease; }
+.cover.is-arming #neonName,
+.cover.is-flash #neonName,
+.cover.is-revealed #neonName { filter: none; }
+
+/* حالة الغلاف: خافت بالكاد يلمع → ارتجاف الاشتعال → توهّج كامل */
+#neonName .nn-in { opacity: .3; }
+.cover.is-arming #neonName .nn-in { animation: nameFlicker 1.45s linear forwards; }
+.cover.is-flash #neonName .nn-in,
+.cover.is-revealed #neonName .nn-in { opacity: 1; }
+.cover.is-revealed #neonName .nn-in { animation: neonBreathe 2.8s ease-in-out .4s infinite; }
+@keyframes nameFlicker {
+  0%   { opacity: .3; }
+  5%   { opacity: .85; }
+  8%   { opacity: .2; }
+  12%  { opacity: .95; }
+  16%  { opacity: .16; }
+  22%  { opacity: 1; }
+  27%  { opacity: .32; }
+  33%  { opacity: 1; }
+  38%  { opacity: .5; }
+  46%  { opacity: 1; }
+  53%  { opacity: .78; }
+  60%  { opacity: 1; }
+  100% { opacity: 1; }
+}
+@keyframes neonBreathe {
+  0%,100% { opacity: 1; }
+  50%     { opacity: .88; }
+}
+
+/* الوميض الكاشف عند اكتمال الاشتعال */
+.flash {
+  position: absolute; z-index: 35;
+  left: var(--rx, 50%); top: var(--ry, 37%);
+  width: calc(var(--rd, 240px) * 2.7);
+  height: calc(var(--rd, 240px) * 2.7);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    rgba(255,244,250,.95),
+    rgba(255,124,184,.7) 42%,
+    rgba(255,61,143,.32) 64%,
+    transparent 78%);
+  opacity: 0;
+  pointer-events: none;
+}
+.cover.is-flash .flash { opacity: 1; transition: opacity .28s ease-in; }
+.cover.is-revealed .flash { opacity: 0; transition: opacity .45s ease-out; }
+
+/* زر اللمس — كل الشاشة */
+.cover-tap {
+  position: absolute; inset: 0; z-index: 30;
+  background: none; border: none; padding: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.cover.is-open .cover-tap { cursor: default; pointer-events: none; }
+
+/* ---------------- نصوص الغلاف — الفراغ الداكن أعلى المشهد ---------------- */
+.cover-ui {
+  position: absolute; z-index: 20;
+  top: max(40px, calc(env(safe-area-inset-top, 0px) + 26px));
+  left: 0; right: 0;
+  text-align: center;
+  padding: 0 22px;
+  pointer-events: none;
+}
+.cover-ui::before { /* هالة داكنة خلف النصوص */
+  content: "";
+  position: absolute; z-index: -1;
+  top: -30px; left: 50%;
+  width: min(96vw, 440px); height: calc(100% + 62px);
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse 52% 54% at 50% 46%, rgba(18,6,26,.62), rgba(18,6,26,.32) 62%, transparent 78%);
+  filter: blur(14px);
+}
+.latin-accent {
+  margin: 0 0 4px;
+  font-family: "Monoton", cursive;
+  font-size: 16px;
+  letter-spacing: .22em;   /* كلمة لاتينية فقط — لا عربية هنا أبداً */
+  text-transform: uppercase;
+  color: var(--neon-soft);
+  text-shadow: 0 0 10px rgba(255,61,143,.75), 0 1px 6px rgba(16,4,22,.9);
+}
+.cover-kicker {
+  margin: 0;
+  font-family: "Lalezar", "Tajawal", sans-serif;
+  font-size: clamp(21px, 5.8vw, 28px);
+  color: var(--neon-hi);
+  text-shadow: 0 1px 4px rgba(16,4,22,.9), 0 2px 14px rgba(16,4,22,.7), 0 0 22px rgba(255,92,168,.4);
+}
+
+/* شارة العمر على الغلاف — صغيرة بلغة النيون نفسها، لا تنافس الاسم داخل الحلقة */
+.cover-age {
+  margin: 6px 0 0;
+  display: flex; align-items: baseline; justify-content: center; gap: 7px;
+}
+.cover-age-num {
+  font-family: "Lalezar", "Tajawal", sans-serif;
+  font-size: 22px;
+  line-height: 1.2;
+  color: var(--neon-ice);
+  text-shadow:
+    0 0 5px #fff,
+    0 0 12px #ff9ec9,
+    0 0 24px var(--neon),
+    0 2px 6px rgba(16,4,22,.85);
+}
+.cover-age-kicker {
+  font-size: 14px;
+  color: var(--neon-soft);
+  text-shadow: 0 1px 4px rgba(16,4,22,.9), 0 0 12px rgba(255,61,143,.45);
+}
+
+.cover-hint {
+  position: absolute; z-index: 20;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 28px);
+  left: 0; right: 0;
+  display: flex; align-items: center; justify-content: center; gap: 9px;
+  margin: 0;
+  font-size: 14.5px;
+  color: var(--neon-hi);
+  text-shadow: 0 1px 4px rgba(16,4,22,.95), 0 2px 12px rgba(16,4,22,.75);
+  animation: hintPulse 2.4s ease-in-out infinite;
+  pointer-events: none;
+}
+.hint-dot {
+  width: 11px; height: 11px; border-radius: 50%;
+  border: 2px solid var(--neon);
+  box-shadow: 0 0 10px rgba(255,61,143,.85);
+}
+@keyframes hintPulse {
+  0%,100% { opacity: .72; transform: translateY(0); }
+  50%     { opacity: 1; transform: translateY(-3px); }
+}
+.cover.is-open .cover-hint { opacity: 0; transition: opacity .35s ease; }
+
+/* ============================================================
+   INVITATION — صالة الليل البنفسجية
+   ============================================================ */
+.invite { position: relative; min-height: 100lvh; }
+
+.scene { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+.night-wall {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(110% 60% at 50% -8%, rgba(255,61,143,.14), transparent 58%),
+    radial-gradient(80% 60% at 12% 92%, rgba(90,32,120,.5), transparent 64%),
+    radial-gradient(80% 60% at 88% 90%, rgba(56,24,79,.6), transparent 64%),
+    linear-gradient(180deg, var(--wall-top) 0%, var(--violet) 45%, var(--void) 100%);
+}
+.night-wall::after { /* حبيبات خفيفة تكسر التدرج */
+  content: "";
+  position: absolute; inset: 0;
+  background:
+    repeating-linear-gradient(108deg, rgba(255,255,255,.02) 0 2px, transparent 2px 6px),
+    repeating-linear-gradient(-12deg, rgba(0,0,0,.045) 0 3px, transparent 3px 9px);
+  mix-blend-mode: overlay;
+}
+
+/* كرات ضوء عائمة — CSS فقط، transform/opacity حصراً */
+.orbs { position: absolute; inset: 0; }
+.orbs span {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, rgba(255,124,184,.5), rgba(255,61,143,.18) 55%, transparent 72%);
+  filter: blur(18px);
+  opacity: .2;
+  animation: orbDrift 16s ease-in-out infinite alternate;
+}
+.orbs span:nth-child(1) { left: 6%;  top: 14%; width: 150px; height: 150px; animation-delay: 0s; }
+.orbs span:nth-child(2) { left: 74%; top: 8%;  width: 110px; height: 110px; animation-delay: -3s; animation-duration: 19s; }
+.orbs span:nth-child(3) { left: 82%; top: 46%; width: 170px; height: 170px; animation-delay: -6s; animation-duration: 22s; }
+.orbs span:nth-child(4) { left: 10%; top: 58%; width: 120px; height: 120px; animation-delay: -9s;
+  background: radial-gradient(circle at 40% 35%, rgba(180,110,240,.45), rgba(120,60,190,.16) 55%, transparent 72%); }
+.orbs span:nth-child(5) { left: 42%; top: 78%; width: 140px; height: 140px; animation-delay: -12s; animation-duration: 18s; }
+.orbs span:nth-child(6) { left: 60%; top: 30%; width: 90px;  height: 90px;  animation-delay: -5s;
+  background: radial-gradient(circle at 40% 35%, rgba(180,110,240,.4), rgba(120,60,190,.14) 55%, transparent 72%); }
+.orbs span:nth-child(7) { left: 28%; top: 36%; width: 80px;  height: 80px;  animation-delay: -14s; animation-duration: 21s; }
+@keyframes orbDrift {
+  from { transform: translate3d(0, 12px, 0) scale(1); opacity: .14; }
+  50%  { opacity: .26; }
+  to   { transform: translate3d(24px, -34px, 0) scale(1.12); opacity: .16; }
+}
+
+/* بالونا قلب نيون صغيران يسرحان في الخلفية (نمط bf-drift من قالب الفراشات، بلون النيون) */
+.hb {
+  position: absolute;
+  width: 26px; height: 50px;
+  opacity: .5;
+  filter: drop-shadow(0 0 8px rgba(255,61,143,.55));
+}
+.hb::before { /* القلب */
+  content: "";
+  position: absolute; inset: 0 0 auto 0; height: 24px;
+  background: radial-gradient(circle at 35% 30%, #ffd3e6, var(--neon) 62%, #d92878);
+  clip-path: path("M13 24 L2.4 12.8 A6.8 6.8 0 0 1 13 4.4 A6.8 6.8 0 0 1 23.6 12.8 Z");
+}
+.hb::after { /* خيط البالون */
+  content: "";
+  position: absolute; left: 50%; top: 23px;
+  width: 1.5px; height: 24px;
+  background: linear-gradient(180deg, rgba(255,158,201,.75), rgba(255,158,201,0));
+}
+.hb-1 { left: 7%;  top: 32%; animation: hbDrift1 24s ease-in-out infinite alternate; }
+.hb-2 { left: 80%; top: 14%; animation: hbDrift2 29s ease-in-out infinite alternate; opacity: .4; }
+@keyframes hbDrift1 {
+  0%   { transform: translate(0, 0) rotate(-10deg); }
+  45%  { transform: translate(11vw, -7vh) rotate(8deg); }
+  100% { transform: translate(20vw, 2vh) rotate(-6deg); }
+}
+@keyframes hbDrift2 {
+  0%   { transform: translate(0, 0) rotate(9deg); }
+  50%  { transform: translate(-13vw, 8vh) rotate(-8deg); }
+  100% { transform: translate(-4vw, -4vh) rotate(5deg); }
+}
+
+.page {
+  position: relative; z-index: 1;
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 0 18px calc(56px + env(safe-area-inset-bottom, 0px));
+}
+
+/* ---------------- HERO — نفس المشهد، ذوبان لليل ---------------- */
+.hero {
+  position: relative;
+  min-height: 100lvh;
+  display: flex; flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0 8px 44px;
+}
+/* المشهد بعرض الشاشة كاملاً يذوب أسفله في الليل البنفسجي */
+.hero-scene {
+  position: absolute; z-index: 0;
+  top: 0; bottom: 0; left: calc(50% - 50vw);
+  width: 100vw;
+  /* التمركز عبر left (لا transform) — keyframes كِن-بيرنز تستبدل transform بالكامل */
+  background: url("assets/scene.jpg") center / cover no-repeat;
+  /* نفس حركة الغلاف تماماً كي تبقى الطبقتان متطابقتين أثناء الذوبان — لا شبح مزدوج */
+  animation: kenburns 18s ease-in-out infinite alternate;
+}
+.hero-scene::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg,
+    rgba(21,9,32,.3) 0%,
+    rgba(21,9,32,.12) 30%,
+    rgba(21,9,32,.68) 62%,
+    rgba(21,9,32,.92) 86%,
+    var(--void) 99%);
+}
+/* الاسم داخل الحلقة في الـ hero — مشتعل دائماً مع تنفس هادئ */
+.hero-neon { z-index: 1; }
+.hero-neon .nn-in { animation: neonBreathe 2.8s ease-in-out infinite; }
+.hero-scene .ring-bloom { z-index: 0; }
+
+.hero-spacer { width: 100%; height: 58vh; flex: none; }
+
+.hero-inner {
+  position: relative; z-index: 2;
+  display: flex; flex-direction: column; align-items: center;
+  width: 100%;
+}
+.hero-inner::before { /* هالة داكنة خلف كتلة النصوص فوق الصورة */
+  content: "";
+  position: absolute; z-index: -1;
+  top: -26px; left: 50%;
+  width: min(96vw, 520px); height: calc(100% + 54px);
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse 54% 52% at 50% 42%, rgba(16,6,26,.6), rgba(16,6,26,.3) 62%, transparent 80%);
+  filter: blur(14px);
+}
+
+.hero-kicker {
+  margin: 0 0 12px;
+  font-family: "Lalezar", "Tajawal", sans-serif;
+  font-size: clamp(18px, 5vw, 23px);
+  color: var(--neon-hi);
+  text-shadow: 0 1px 4px rgba(16,4,22,.9), 0 2px 14px rgba(16,4,22,.7);
+}
+
+/* صورة صاحبة العيد المؤطّرة بحلقة نيون */
+.hero-photo {
+  width: clamp(122px, 34vw, 178px);
+  aspect-ratio: 1 / 1;
+  margin: 4px auto 16px;
+  border-radius: 50%;
+  padding: 4px;
+  background: conic-gradient(from 30deg, var(--neon-hi), var(--neon), #b31f66, var(--neon), var(--neon-hi));
+  box-shadow: 0 0 0 1px rgba(255,158,201,.45), 0 0 26px rgba(255,61,143,.5), 0 16px 36px rgba(8,2,14,.6);
+  animation: photoIn .9s var(--ease-lux) both;
+}
+.hero-photo img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 3px solid var(--void);
+}
+@keyframes photoIn {
+  from { opacity: 0; transform: scale(.86); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* العمر — أرقام هندية كبيرة بنيون */
+.hero-age { display: flex; flex-direction: column; align-items: center; margin: 2px 0 8px; }
+.age-num {
+  font-family: "Lalezar", "Tajawal", sans-serif;
+  font-size: clamp(64px, 19vw, 112px);
+  line-height: 1.05;
+  color: var(--neon-ice);
+  text-shadow:
+    0 0 6px #fff,
+    0 0 16px #ff9ec9,
+    0 0 34px var(--neon),
+    0 0 64px var(--neon),
+    0 3px 8px rgba(16,4,22,.85);
+}
+.age-kicker {
+  margin-top: 2px;
+  font-family: "Lalezar", "Tajawal", sans-serif;
+  font-size: clamp(17px, 4.8vw, 22px);
+  color: var(--neon-soft);
+  text-shadow: 0 1px 4px rgba(16,4,22,.9), 0 0 16px rgba(255,61,143,.45);
+}
+
+.hero-sub {
+  margin: 4px 0 0;
+  font-size: clamp(15px, 4.2vw, 18px);
+  color: var(--text);
+  opacity: .95;
+  text-shadow: 0 1px 8px rgba(16,4,22,.7);
+}
+.hero-date {
+  margin: 12px 0 0;
+  font-family: "Lalezar", "Tajawal", sans-serif;
+  font-size: clamp(16px, 4.6vw, 21px);
+  color: var(--neon-hi);
+  text-shadow: 0 1px 8px rgba(16,4,22,.7), 0 0 18px rgba(255,92,168,.35);
+}
+.scroll-cue {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  margin-top: 22px;
+  color: var(--neon-soft);
+  text-shadow: 0 1px 8px rgba(0,0,0,.45), 0 0 12px rgba(255,61,143,.6);
+}
+.scroll-cue-label {
+  font-family: "Tajawal", system-ui, sans-serif;
+  font-size: .88rem;
+  font-weight: 500;
+  letter-spacing: .3px;
+}
+.scroll-cue-arrow {
+  font-size: 1.2rem;
+  line-height: 1;
+  animation: cueBob 1.8s ease-in-out infinite;
+}
+@keyframes cueBob {
+  0%,100% { transform: translateY(0); opacity: .85; }
+  50%     { transform: translateY(7px); opacity: 1; }
+}
+
+/* الشعار العائم — بالون قلب يتفرقع قلوباً */
+.emblem {
+  position: absolute; z-index: 4;
+  top: clamp(64px, 12vh, 110px);
+  inset-inline-start: 14px;
+  width: 52px; height: 58px;
+  padding: 7px;
+  background: radial-gradient(circle at 50% 40%, rgba(255,92,168,.18), rgba(255,92,168,.03) 70%);
+  border: 1px solid rgba(255,92,168,.5);
+  border-radius: 50%;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  animation: emblemFloat 4.2s ease-in-out infinite;
+  transition: transform .25s ease;
+}
+.emblem:active { transform: scale(.9); }
+.emblem svg { width: 100%; height: 100%; filter: drop-shadow(0 0 6px rgba(255,61,143,.6)); }
+@keyframes emblemFloat {
+  0%,100% { transform: translateY(0) rotate(-4deg); }
+  50%     { transform: translateY(-8px) rotate(4deg); }
+}
+
+/* ---------------- CARDS — زجاج داكن بحواف نيون ---------------- */
+.card {
+  position: relative;
+  margin: 26px 0;
+  padding: clamp(26px, 6vw, 42px) clamp(20px, 5vw, 38px);
+  text-align: center;
+  color: var(--text);
+  background: linear-gradient(180deg, rgba(56,24,79,.55), rgba(36,16,53,.72));
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  border-radius: var(--radius);
+  border: 1px solid rgba(255,92,168,.4);
+  box-shadow:
+    0 0 0 4px rgba(255,61,143,.07),
+    0 0 26px rgba(255,61,143,.13),
+    0 20px 44px rgba(6,2,12,.55);
+}
+.card::before { /* خيط نيون داخلي رفيع */
+  content: "";
+  position: absolute; inset: 8px;
+  border: 1px solid rgba(255,92,168,.22);
+  border-radius: calc(var(--radius) - 7px);
+  pointer-events: none;
+}
+
+.sec-title {
+  margin: 0 0 16px;
+  font-family: "Lalezar", "Tajawal", sans-serif;
+  font-weight: 400;
+  font-size: clamp(21px, 5.8vw, 27px);
+  color: var(--neon-hi);
+  text-shadow: 0 0 14px rgba(255,61,143,.45);
+}
+.sec-title span { position: relative; display: inline-block; padding: 0 14px; }
+.sec-title span::before, .sec-title span::after {
+  content: "";
+  position: absolute; top: 55%;
+  width: 34px; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--neon));
+  box-shadow: 0 0 8px rgba(255,61,143,.6);
+}
+.sec-title span::before { right: 100%; }
+.sec-title span::after  { left: 100%; transform: scaleX(-1); }
+
+/* greeting */
+.verse-card { padding-top: 40px; }
+.card-spark {
+  position: absolute; top: -15px; left: 50%;
+  width: 32px; height: 32px;
+  transform: translateX(-50%);
+  background: var(--violet);
+  border-radius: 50%;
+  padding: 3px;
+  box-shadow: 0 0 0 4px rgba(255,61,143,.2), 0 0 14px rgba(255,61,143,.5);
+}
+.card-spark svg { width: 100%; height: 100%; }
+.verse {
+  margin: 0 auto;
+  max-width: 30ch;
+  font-family: "Lalezar", "Tajawal", sans-serif;
+  font-size: clamp(21px, 6vw, 28px);
+  line-height: 1.9;
+  color: var(--neon-hi);
+  text-shadow: 0 0 16px rgba(255,61,143,.4);
+}
+
+/* invitation + host */
+.invitation-text {
+  margin: 0 auto 18px;
+  max-width: 42ch;
+  font-size: clamp(15px, 4.2vw, 17.5px);
+  line-height: 2.15;
+  color: var(--text);
+}
+.host-line {
+  margin: 0;
+  padding-top: 16px;
+  border-top: 1px dashed rgba(255,92,168,.35);
+  font-family: "Lalezar", "Tajawal", sans-serif;
+  font-size: clamp(17px, 4.8vw, 21px);
+  color: var(--neon-soft);
+}
+
+/* countdown */
+.countdown {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(8px, 2.4vw, 14px);
+  max-width: 430px;
+  margin: 0 auto;
+}
+.cd-unit {
+  padding: 14px 4px 10px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(28,12,42,.85), rgba(20,8,32,.9));
+  border: 1px solid rgba(255,92,168,.4);
+  box-shadow: inset 0 -3px 0 rgba(255,61,143,.22), 0 6px 14px rgba(6,2,12,.4);
+}
+.cd-num {
+  display: block;
+  font-family: "Lalezar", "Tajawal", sans-serif;
+  font-size: clamp(27px, 7.8vw, 42px);
+  line-height: 1.15;
+  color: var(--neon-ice);
+  text-shadow: 0 0 8px #fff0f7, 0 0 18px var(--neon);
+}
+.cd-lbl { display: block; font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+.cd-arrived {
+  margin: 14px 0 0;
+  font-family: "Lalezar", "Tajawal", sans-serif;
+  font-size: clamp(21px, 5.8vw, 27px);
+  color: var(--neon-hi);
+  text-shadow: 0 0 18px rgba(255,61,143,.55);
+}
+
+/* program timeline */
+.timeline {
+  list-style: none;
+  margin: 6px auto 0; padding: 0;
+  max-width: 380px;
+  text-align: start;
+}
+.tl-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: baseline;
+  gap: 12px;
+  padding: 12px 0; padding-inline: 20px 0;
+  border-inline-start: 2px solid rgba(255,92,168,.4);
+  margin-inline-start: 8px;
+}
+.tl-dot {
+  position: absolute;
+  inset-inline-start: -8px; top: 18px;
+  width: 13px; height: 13px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, var(--neon-hi), var(--neon));
+  box-shadow: 0 0 0 3px var(--violet), 0 0 10px rgba(255,61,143,.8);
+}
+.tl-time {
+  font-family: "Lalezar", "Tajawal", sans-serif;
+  color: var(--neon-soft);
+  font-size: 15.5px;
+  min-width: 88px;
+}
+.tl-title { color: var(--text); font-size: 15.5px; }
+
+/* venue */
+.venue-date {
+  margin: 0;
+  font-family: "Lalezar", "Tajawal", sans-serif;
+  font-size: clamp(19px, 5.4vw, 26px);
+  color: var(--text);
+}
+.venue-time { margin: 2px 0 14px; font-size: 15px; color: var(--muted); }
+
+/* صورة القاعة من الزبون — مطويّة تماماً (بلا ارتفاع ولا حدّ ولا هامش)
+   حتى تنجح صورة حقيقية بالتحميل، فتنفتح بإطار نيون يطابق البطاقة */
+.venue-photo {
+  height: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+  opacity: 0;
+  background: center / cover no-repeat;
+  border-radius: 14px;
+  transition: height .55s var(--ease-lux), opacity .5s ease .12s;
+}
+.venue-photo.has-img {
+  height: 190px;
+  max-width: 430px;
+  margin: 0 auto 16px;
+  opacity: 1;
+  border: 1px solid rgba(255,92,168,.45);
+  box-shadow:
+    0 0 0 1px rgba(255,158,201,.35),
+    0 0 22px rgba(255,61,143,.28),
+    0 14px 30px rgba(8,2,14,.55);
+}
+.venue-name {
+  margin: 0;
+  font-family: "Lalezar", "Tajawal", sans-serif;
+  font-size: clamp(22px, 6.2vw, 31px);
+  color: var(--neon-hi);
+  text-shadow: 0 0 16px rgba(255,61,143,.4);
+}
+.venue-addr { margin: 4px 0 0; font-size: 15px; color: var(--muted); }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  margin-top: 22px;
+  padding: 13px 30px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 15.5px;
+  text-decoration: none;
+  color: #fff;
+  background: linear-gradient(180deg, #ff6cae, var(--neon) 60%, #d92878);
+  box-shadow: 0 0 22px rgba(255,61,143,.55), 0 10px 24px rgba(217,40,120,.35), inset 0 1px 2px rgba(255,220,238,.7);
+  text-shadow: 0 1px 3px rgba(120,8,58,.6);
+  transition: transform .25s ease, filter .25s ease;
+}
+.btn:hover { transform: translateY(-2px); filter: brightness(1.07); }
+.btn:active { transform: translateY(0) scale(.98); }
+.btn-map { min-width: min(78%, 300px); justify-content: center; }
+
+/* notes */
+.notes {
+  list-style: none;
+  margin: 4px auto 0; padding: 0;
+  max-width: 410px;
+  text-align: start;
+}
+.notes li {
+  position: relative;
+  padding: 9px 0; padding-inline: 30px 0;
+  font-size: 15px;
+  line-height: 1.85;
+  color: var(--text);
+}
+.notes li::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 6px; top: 17px;
+  width: 9px; height: 9px;
+  transform: rotate(45deg);
+  background: linear-gradient(135deg, var(--neon-hi), var(--neon));
+  box-shadow: 0 0 8px rgba(255,61,143,.7);
+}
+
+/* closing */
+.closing { text-align: center; padding: 30px 8px 6px; }
+.closing-divider {
+  display: flex; align-items: center; justify-content: center;
+  gap: 14px;
+  max-width: 300px;
+  margin: 0 auto 18px;
+}
+.closing-divider span {
+  flex: 1; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--neon), transparent);
+  box-shadow: 0 0 8px rgba(255,61,143,.5);
+}
+.closing-note {
+  margin: 0 0 6px;
+  font-family: "Lalezar", "Tajawal", sans-serif;
+  font-size: clamp(24px, 6.8vw, 35px);
+  color: var(--neon-ice);
+  text-shadow: 0 0 8px #fff0f7, 0 0 24px var(--neon), 0 0 46px rgba(255,61,143,.6);
+}
+.closing-hashtag {
+  margin: 0 0 8px;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--neon-soft);
+}
+.closing-families { margin: 0; font-size: 15px; color: var(--muted); }
+
+/* contact */
+.contact-name {
+  margin: 0;
+  font-family: "Lalezar", "Tajawal", sans-serif;
+  font-size: clamp(17px, 4.8vw, 21px);
+  color: var(--text);
+}
+.btn-tel { direction: ltr; }
+
+/* ---------------- reveal on scroll ---------------- */
+.reveal { opacity: 0; transform: translateY(28px); transition: opacity .9s var(--ease-lux), transform .9s var(--ease-lux); }
+.reveal.is-visible { opacity: 1; transform: translateY(0); }
+
+/* ============================================================
+   JS PARTICLES — طبقة واحدة ثابتة، transform/opacity فقط
+   ============================================================ */
+.fx-layer {
+  position: fixed; inset: 0;
+  z-index: 90;
+  pointer-events: none;
+  overflow: hidden;
+}
+.fx {
+  position: absolute; top: 0; left: 0;
+  will-change: transform, opacity;
+}
+/* بريق وردي — أثر اللمس */
+.fx-twinkle {
+  width: 10px; height: 10px;
+  background:
+    linear-gradient(var(--neon-hi), var(--neon-hi)) center/2px 100% no-repeat,
+    linear-gradient(var(--neon-hi), var(--neon-hi)) center/100% 2px no-repeat;
+  filter: drop-shadow(0 0 5px rgba(255,124,184,.95));
+  animation: fxTwinkle .7s ease-out forwards;
+}
+@keyframes fxTwinkle {
+  0%   { opacity: 0; transform: translate(var(--x), var(--y)) scale(.2) rotate(0deg); }
+  25%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--x), var(--y)) scale(1) rotate(90deg); }
+}
+/* شرارة نافورة — من شمعات الكيكة: تصعد لذروة (--mx/--my) ثم تسقط بقوس */
+.fx-fount {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff6df, var(--spark-gold) 55%, transparent 78%);
+  filter: drop-shadow(0 0 4px rgba(255,217,138,.9));
+  animation: fxFount 1.2s cubic-bezier(.2,.55,.5,1) forwards;
+}
+@keyframes fxFount {
+  0%   { opacity: 1; transform: translate(var(--x), var(--y)) scale(1.15); }
+  45%  { opacity: 1; transform: translate(var(--mx), var(--my)) scale(.9); }
+  100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(.2); }
+}
+/* مطر ذهبي — شرائط تلمع وهي تهبط بعد الوميض */
+.fx-rain {
+  width: 3px; height: 14px; border-radius: 3px;
+  background: linear-gradient(180deg, rgba(255,217,138,0), #ffedc4 45%, var(--spark-gold));
+  filter: drop-shadow(0 0 3px rgba(255,217,138,.8));
+  animation: fxRain linear forwards;
+}
+@keyframes fxRain {
+  0%   { opacity: 0; transform: translate(var(--x), var(--y)) rotate(8deg); }
+  12%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--tx), var(--ty)) rotate(-10deg); }
+}
+/* قلب وردي — الشعار */
+.fx-heart {
+  width: 13px; height: 12px;
+  background: var(--neon);
+  clip-path: path("M6.5 12 L1.2 6.4 A3.4 3.4 0 0 1 6.5 2.2 A3.4 3.4 0 0 1 11.8 6.4 Z");
+  filter: drop-shadow(0 0 5px rgba(255,61,143,.8));
+  animation: fxHeart 1.2s cubic-bezier(.16,.6,.4,1) forwards;
+}
+@keyframes fxHeart {
+  0%   { opacity: 1; transform: translate(var(--x), var(--y)) scale(.4); }
+  30%  { transform: translate(calc(var(--x) + (var(--tx) - var(--x)) * .4), calc(var(--y) + (var(--ty) - var(--y)) * .4)) scale(1.1); }
+  100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(.6) rotate(-14deg); }
+}
+/* بريق صاعد — حياة محيطية */
+.fx-rise {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #ffeaf4, rgba(255,92,168,.85) 55%, transparent 75%);
+  filter: drop-shadow(0 0 5px rgba(255,92,168,.8));
+  animation: fxRise linear forwards;
+}
+@keyframes fxRise {
+  0%   { opacity: 0; transform: translate(var(--x), var(--y)) scale(.6); }
+  12%  { opacity: .9; }
+  100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(1); }
+}
+
+/* ============================================================
+   RESPONSIVE — مؤلَّف على 1200px أيضاً
+   ============================================================ */
+@media (min-width: 760px) {
+  .cover-kicker { font-size: 30px; }
+  .latin-accent { font-size: 18px; }
+  .emblem { inset-inline-start: -70px; top: 34vh; }
+}
+
+/* شاشات عريضة: المشهد عمودي 9:16 — قصّ cover يُضيّع الحلقة،
+   فنعرضه شريطاً متمركزاً بكامل الارتفاع فوق تدرّج الليل (نفس عتبة JS: 7/10) */
+@media (min-aspect-ratio: 7/10) {
+  .cover {
+    background:
+      radial-gradient(90% 70% at 50% 20%, rgba(255,61,143,.1), transparent 60%),
+      linear-gradient(180deg, var(--wall-top) 0%, var(--violet) 55%, var(--void) 100%);
+  }
+  .scene-photo .ph { object-fit: contain; }
+  .hero-scene {
+    background-size: contain;
+    background-position: center;
+    background-color: transparent;
+  }
+}
+
+/* ============================================================
+   REDUCED MOTION — كشف سريع بلا حركة
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .scene-photo, .hero-scene, .orbs span, .hb,
+  .scroll-cue, .scroll-cue-arrow, .emblem, .hero-photo,
+  .cover-hint,
+  .ring-bloom, .cover.is-revealed .ring-bloom,
+  #neonName .nn-in, .hero-neon .nn-in,
+  .cover.is-arming #neonName .nn-in,
+  .cover.is-revealed #neonName .nn-in,
+  .cover.is-arming .dimmer { animation: none !important; }
+  .orbs { display: none; }
+  .reveal { transition: none; opacity: 1; transform: none; }
+  .cover { transition: opacity .4s ease, visibility 0s linear .5s; }
+  .cover.is-revealed .dimmer { opacity: .06; transition: none; }
+  .cover.is-revealed #neonName .nn-in { opacity: 1; }
+  .flash { display: none; }
+}
+
+/* أسطر Enter في حقل «العبارة» تُعرض كما كتبها الزبون */
+p.verse, .verse { white-space: pre-line; }
